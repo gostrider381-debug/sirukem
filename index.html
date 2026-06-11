@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIRUKEM V4.2 - Flash-Free LocalStorage Edition</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/styles/overlayscrollbars.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background-color: #1a2226;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pdf-header { display: none; }
+    </style>
+</head>
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+
+    <div id="login-screen" class="transition-all d-none">
+        <div class="login-box bg-white p-4 rounded shadow-lg border" style="width: 100%; max-width: 400px;">
+            <div class="text-center mb-4">
+                <div class="text-primary mb-2">
+                    <i class="fas fa-heart-crack fa-3x"></i>
+                </div>
+                <h3 class="fw-bold text-dark tracking-tight">SIRUKEM V4.2</h3>
+                <p class="text-muted small">Sistem Rukun Kematian · AdminLTE 4</p>
+            </div>
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user text-muted"></i></span>
+                        <input type="text" id="login-user" class="form-control text-sm" placeholder="Masukkan username" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock text-muted"></i></span>
+                        <input type="password" id="login-pass" class="form-control text-sm" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm mb-3">
+                    Masuk Ke Sistem
+                </button>
+                <div class="p-2 text-center bg-light rounded border border-dashed small text-muted" style="font-size: 11px;">
+                    <p class="mb-1 fw-bold text-secondary">Akses Master Pengaman:</p>
+                    <div>Username: <span class="font-monospace fw-bold">admin</span> | Pass: <span class="font-monospace fw-bold">admin123</span></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-wrapper d-none" id="main-app">
+        
+        <nav class="app-header navbar navbar-expand bg-body border-bottom">
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                            <i class="fas fa-bars"></i>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span id="user-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle fs-7 rounded-pill px-3 py-2 fw-semibold">
+                            Menghubungkan...
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <aside class="app-sidebar bg-dark shadow" data-bs-theme="dark">
+            <div class="sidebar-brand border-bottom border-secondary">
+                <a href="#" class="brand-link text-decoration-none py-3 d-flex align-items-center gap-2 px-3">
+                    <div class="bg-primary text-white p-2 rounded">
+                        <i class="fas fa-heart-crack fs-5"></i>
+                    </div>
+                    <span class="brand-text fw-bold fs-5 text-white">SIRUKEM v4.2</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-wrapper">
+                <nav class="mt-3 px-2">
+                    <ul class="nav flex-column" data-lte-toggle="treeview" role="menu">
+                        <li class="nav-item mb-1">
+                            <a href="#" onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-link active d-flex align-items-center gap-3 py-2 px-3 rounded text-white">
+                                <i class="fas fa-chart-pie text-info" style="width: 20px;"></i> <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="#" onclick="switchTab('anggota')" id="btn-anggota" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded text-secondary">
+                                <i class="fas fa-users text-warning" style="width: 20px;"></i> <span>Data Keluarga</span>
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a href="#" onclick="switchTab('kas')" id="btn-kas" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded text-secondary">
+                                <i class="fas fa-wallet text-success" style="width: 20px;"></i> <span>Transaksi Kas</span>
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1 d-none" id="btn-pengguna-wrapper">
+                            <a href="#" onclick="switchTab('pengguna')" id="btn-pengguna" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded text-danger">
+                                <i class="fas fa-user-shield text-danger" style="width: 20px;"></i> <span>Manajemen User</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark border-top border-secondary">
+                <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
+                </button>
+                <div class="text-center mt-2" style="font-size: 10px; color: #6c757d;">&copy; 2026 AdminLTE 4 Engine</div>
+            </div>
+        </aside>
+
+        <main class="app-main">
+            <div class="app-content-header border-bottom py-3 bg-white mb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-sm-6">
+                            <h3 class="mb-0 fw-bold text-dark" id="page-title">Dashboard</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-content">
+                <div class="container-fluid">
+                    
+                    <div id="tab-dashboard" class="tab-content">
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="info-box bg-white border rounded shadow-sm">
+                                    <span class="info-box-icon bg-info text-white rounded-start"><i class="fas fa-home"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted small text-uppercase fw-bold">Total KK Terdaftar</span>
+                                        <span class="info-box-number text-dark fs-4 fw-bold" id="stat-total-anggota">0 KK</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="info-box bg-white border rounded shadow-sm">
+                                    <span class="info-box-icon bg-success text-white rounded-start"><i class="fas fa-money-bill-wave"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted small text-uppercase fw-bold">Saldo Kas Sekarang</span>
+                                        <span class="info-box-number text-dark fs-4 fw-bold" id="stat-saldo">Rp0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="info-box bg-white border rounded shadow-sm">
+                                    <span class="info-box-icon bg-danger text-white rounded-start"><i class="fas fa-hand-holding-heart"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted small text-uppercase fw-bold">Santunan Keluar</span>
+                                        <span class="info-box-number text-dark fs-4 fw-bold" id="stat-santunan">Rp0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="info-box bg-white border rounded shadow-sm">
+                                    <span class="info-box-icon bg-warning text-white rounded-start"><i class="fas fa-receipt"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted small text-uppercase fw-bold">Iuran Masuk</span>
+                                        <span class="info-box-number text-dark fs-4 fw-bold" id="stat-iuran">Rp0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm border">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h5 class="card-title fw-bold mb-0 text-dark">Visualisasi Grafik Buku Kas</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="height: 300px; position: relative;">
+                                            <canvas id="dashboardChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card shadow-sm border bg-white h-100">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h5 class="card-title fw-bold mb-0 text-dark">Fitur WhatsApp Reminder</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-light border-start border-success border-4 small mb-3 text-dark">
+                                            <i class="fab fa-whatsapp text-success me-1"></i> <strong>Sistem Notifikasi:</strong> Anda sekarang bisa langsung klik ikon WhatsApp pada daftar keluarga untuk mengirim pesan pengingat tagihan iuran secara semi-otomatis tanpa perlu simpan nomor HP warga terlebih dahulu.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-anggota" class="tab-content d-none">
+                        <div class="card shadow-sm border">
+                            <div class="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 border-bottom">
+                                <h5 class="card-title fw-bold mb-0 text-dark">Manajemen Data Anggota Keluarga Pembayar Iuran</h5>
+                                <div class="d-flex gap-2">
+                                    <button onclick="exportPDF('print-area-anggota', 'Laporan_Data_Anggota_SIRUKEM')" class="btn btn-danger btn-sm fw-bold d-flex align-items-center gap-1">
+                                        <i class="fas fa-file-pdf"></i> Unduh PDF
+                                    </button>
+                                    <button onclick="openAnggotaModal()" class="btn btn-primary btn-sm fw-bold d-flex align-items-center gap-1">
+                                        <i class="fas fa-plus"></i> Tambah KK Baru
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0" id="print-area-anggota">
+                                <div class="pdf-header p-4 border-bottom text-center">
+                                    <h3 class="fw-bold m-0 text-dark">RUKUN KEMATIAN RT 13B & RT 14</h3>
+                                    <p class="text-muted small m-0">Laporan Master Data Keluarga & Anggota Tanggungan Paguyuban</p>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle mb-0 text-sm">
+                                        <thead class="table-light text-uppercase fs-7 fw-bold border-bottom">
+                                            <tr>
+                                                <th class="ps-4 py-3">No. KK / ID</th>
+                                                <th class="py-3">Kepala Keluarga</th>
+                                                <th class="py-3" style="width: 30%;">Anggota Keluarga yang Diikutkan</th>
+                                                <th class="py-3">Wilayah</th>
+                                                <th class="py-3">Kontak WA</th>
+                                                <th class="py-3">Status</th>
+                                                <th class="text-center pe-4 py-3 action-column">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-anggota-body" class="border-top-0"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-kas" class="tab-content d-none">
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <div class="card shadow-sm border">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h5 class="card-title fw-bold mb-0 text-dark" id="form-kas-title">Input Buku Kas / Iuran</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="form-transaksi" onsubmit="handleSaveTransaksi(event)" class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Jenis Mutasi</label>
+                                                <select id="tx-jenis" class="form-select text-sm" required>
+                                                    <option value="masuk">Kas Masuk / Pembayaran Iuran</option>
+                                                    <option value="keluar">Kas Keluar / Penyaluran Santunan</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Kategori Pos Dana</label>
+                                                <select id="tx-kategori" class="form-select text-sm" required>
+                                                    <option value="Iuran">Iuran Bulanan Warga</option>
+                                                    <option value="Donasi">Donasi / Sumbangan Sukarela</option>
+                                                    <option value="Santunan">Santunan Kematian</option>
+                                                    <option value="Operasional">Kebutuhan Operasional RT</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Hubungkan ke Data Rumah/KK</label>
+                                                <select id="tx-warga-id" class="form-select text-sm" required>
+                                                    <option value="">-- Pilih Kepala Keluarga --</option>
+                                                    <option value="Umum">Bukan Warga (Pengeluaran Umum)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Nominal (Rupiah)</label>
+                                                <input type="number" id="tx-nominal" class="form-control text-sm" placeholder="Contoh: 20000" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Keterangan Tambahan</label>
+                                                <input type="text" id="tx-keterangan" class="form-control text-sm" placeholder="Contoh: Iuran Periode Juni (Alm. Bapak X)" required>
+                                            </div>
+                                            <div class="col-12 pt-2">
+                                                <button type="submit" id="btn-submit-kas" class="btn btn-success w-100 fw-bold shadow-sm">
+                                                    Simpan Transaksi Ke Buku Kas
+                                                </button>
+                                                <button type="button" id="btn-batal-kas" onclick="batalEditKas()" class="btn btn-light border w-100 fw-semibold mt-2 text-sm d-none">
+                                                    Batal Ubah Data
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm border">
+                                    <div class="card-header bg-light d-flex align-items-center justify-content-between border-bottom">
+                                        <h5 class="card-title fw-bold mb-0 text-dark">Jurnal Buku Kas Digital</h5>
+                                        <button onclick="exportPDF('print-area-kas', 'Jurnal_Buku_Kas_SIRUKEM')" class="btn btn-danger btn-sm fw-bold d-flex align-items-center gap-1">
+                                            <i class="fas fa-file-pdf"></i> Jurnal PDF
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0" id="print-area-kas">
+                                        <div class="pdf-header p-4 border-bottom text-center">
+                                            <h3 class="fw-bold m-0 text-dark">RUKUN KEMATIAN RT 13B & RT 14</h3>
+                                            <p class="text-muted small m-0">Laporan Transaksi Jurnal Buku Kas Keuangan</p>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0 text-sm">
+                                                <thead class="table-light text-uppercase fs-7 fw-bold border-bottom">
+                                                    <tr>
+                                                        <th class="ps-3 py-3">Tanggal</th>
+                                                        <th class="py-3">Kategori</th>
+                                                        <th class="py-3">Keterangan</th>
+                                                        <th class="text-end py-3">Debit</th>
+                                                        <th class="text-end py-3">Kredit</th>
+                                                        <th class="text-center py-3">Petugas</th>
+                                                        <th class="text-center pe-3 py-3 action-column">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="table-kas-body" class="border-top-0"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-pengguna" class="tab-content d-none">
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <div class="card shadow-sm border border-danger-subtle">
+                                    <div class="card-header bg-danger-subtle text-danger border-bottom">
+                                        <h5 class="card-title fw-bold mb-0">Daftarkan Petugas Baru</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="form-tambah-user" onsubmit="handleSaveUser(event)" class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Nama Lengkap Petugas</label>
+                                                <input type="text" id="u-nama" class="form-control text-sm" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Username Login</label>
+                                                <input type="text" id="u-username" class="form-control text-sm font-monospace" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Password Akses</label>
+                                                <input type="text" id="u-pass" class="form-control text-sm font-monospace" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-secondary">Hak Akses Sistem (Role)</label>
+                                                <select id="u-role" class="form-select text-sm">
+                                                    <option value="bendahara">Bendahara RT (Input & Cetak)</option>
+                                                    <option value="admin">Super Admin (Akses Penuh)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 pt-2">
+                                                <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm">
+                                                    Aktifkan Akun Petugas
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm border">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h5 class="card-title fw-bold mb-0 text-dark">Daftar Akun Petugas yang Berwenang</h5>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0 text-sm">
+                                                <thead class="table-light text-uppercase fs-7 fw-bold border-bottom">
+                                                    <tr>
+                                                        <th class="ps-3 py-3">Nama Petugas</th>
+                                                        <th class="py-3">Username</th>
+                                                        <th class="py-3">Password</th>
+                                                        <th class="py-3">Level Otoritas</th>
+                                                        <th class="text-center pe-3 py-3">Tindakan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="table-user-body" class="border-top-0"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal fade" id="modal-anggota" tabindex="-1" aria-labelledby="modal-anggota-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark" id="modal-anggota-title">Form Registrasi Warga Baru</h5>
+                    <button type="button" class="btn-close" onclick="closeAnggotaModal()"></button>
+                </div>
+                <form id="form-anggota" onsubmit="handleSaveAnggota(event)">
+                    <div class="modal-body row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Nama Lengkap Kepala Keluarga</label>
+                            <input type="text" id="m-nama" class="form-control text-sm" placeholder="Contoh: Budi Santoso" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Anggota Keluarga / Peserta Ikutan</label>
+                            <textarea id="m-tanggungan" class="form-control text-sm" rows="3" placeholder="Masukkan nama istri, anak, atau kerabat serumah. Pisahkan dengan tanda koma (,).&#10;Contoh: Siti Aminah (Istri), Rian (Anak), Kayla (Anak)"></textarea>
+                            <div class="form-text text-muted" style="font-size: 11px;">Kosongkan jika hanya tinggal sebatang kara.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Wilayah Rukun Tetangga (RT)</label>
+                            <select id="m-rt" class="form-select text-sm">
+                                <option value="13B">RT 13B</option>
+                                <option value="14">RT 14</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Nomor WhatsApp Aktif</label>
+                            <input type="text" id="m-hp" placeholder="Contoh: 081234..." class="form-control text-sm" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm fw-semibold" onclick="closeAnggotaModal()">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">Simpan Data Keluarga</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/browser/overlayscrollbars.browser.es6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/js/adminlte.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // ==========================================
+        // TEMPELKAN KODE KONFIGURASI FIREBASE ANDA DI SINI
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAL_kZFZAS-q1_fzEtNA3jpp1qZsnDOyXY",
+            authDomain: "sirukem-21adb.firebaseapp.com",
+            projectId: "sirukem-21adb",
+            storageBucket: "sirukem-21adb.firebasestorage.app",
+            messagingSenderId: "185502955685",
+            appId: "1:185502955685:web:eb722e8b181e2cd5c1b54c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activeUser = null;
+        let dbAnggota = [];
+        let dbKas = [];
+        let dbUsers = [];
+        let chartInstance = null;
+        let editAnggotaId = null;
+        let editKasId = null;
+        let bsModalAnggota = null;
+
+        function initRealtimeSync() {
+            onSnapshot(collection(db, "anggota"), (snapshot) => {
+                dbAnggota = [];
+                snapshot.forEach((doc) => { dbAnggota.push({ id: doc.id, ...doc.data() }); });
+                renderAll();
+            });
+
+            const kasQuery = query(collection(db, "kas"), orderBy("createdAt", "desc"));
+            onSnapshot(kasQuery, (snapshot) => {
+                dbKas = [];
+                snapshot.forEach((doc) => { dbKas.push({ id: doc.id, ...doc.data() }); });
+                renderAll();
+            });
+
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                dbUsers = [];
+                snapshot.forEach((doc) => { dbUsers.push({ id: doc.id, ...doc.data() }); });
+                renderTableUsers();
+            });
+        }
+
+        function checkSession() {
+            const savedUser = localStorage.getItem('sirukem_user_profile');
+            const loginScreen = document.getElementById('login-screen');
+            const mainApp = document.getElementById('main-app');
+            const btnPenggunaWrapper = document.getElementById('btn-pengguna-wrapper');
+            
+            if(savedUser) {
+                activeUser = JSON.parse(savedUser);
+                loginScreen.classList.add('d-none');
+                mainApp.classList.remove('d-none');
+                document.getElementById('user-badge').innerHTML = `<i class="fas fa-user-circle me-1"></i> Petugas: ${activeUser.nama}`;
+                
+                if(activeUser.role === 'admin' || activeUser.username === 'admin') {
+                    btnPenggunaWrapper.classList.remove('d-none');
+                } else {
+                    btnPenggunaWrapper.classList.add('d-none');
+                }
+            } else {
+                loginScreen.classList.remove('d-none');
+                mainApp.classList.add('d-none');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value.trim();
+
+            let matchedUser = dbUsers.find(user => user.username === u && user.pass === p);
+            if(!matchedUser && u === 'admin' && p === 'admin123') {
+                matchedUser = { username: 'admin', pass: 'admin123', nama: 'Super Admin Utama', role: 'admin' };
+            }
+
+            if(matchedUser) {
+                localStorage.setItem('sirukem_user_profile', JSON.stringify(matchedUser));
+                document.getElementById('form-login').reset();
+                Swal.fire({ icon: 'success', title: 'Login Sukses!', text: `Selamat bekerja pengurus.`, timer: 1500, showConfirmButton: false });
+                setTimeout(checkSession, 1500);
+            } else {
+                Swal.fire('Akses Ditolak!', 'Username atau password salah!', 'error');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('sirukem_user_profile');
+            activeUser = null;
+            switchTab('dashboard');
+            setTimeout(checkSession, 500);
+        }
+
+        async function handleSaveUser(e) {
+            e.preventDefault();
+            const nama = document.getElementById('u-nama').value;
+            const username = document.getElementById('u-username').value.trim().toLowerCase();
+            const pass = document.getElementById('u-pass').value.trim();
+            const role = document.getElementById('u-role').value;
+
+            if (dbUsers.some(user => user.username === username) || username === 'admin') {
+                Swal.fire('Gagal!', 'Username sudah terpakai!', 'error');
+                return;
+            }
+            try {
+                await addDoc(collection(db, "users"), { nama, username, pass, role });
+                document.getElementById('form-tambah-user').reset();
+                Swal.fire('Berhasil!', 'Akun pengurus baru disimpan.', 'success');
+            } catch (err) { Swal.fire('Gagal!', 'Kesalahan database.', 'error'); }
+        }
+
+        async function hapusUser(id, username) {
+            if(username === 'admin') return;
+            try {
+                await deleteDoc(doc(db, "users", id));
+                Swal.fire('Berhasil!', 'Akun telah dicabut.', 'success');
+            } catch (err) { Swal.fire('Gagal!', 'Gagal menghapus.', 'error'); }
+        }
+
+        function renderTableUsers() {
+            const body = document.getElementById('table-user-body');
+            if(!body) return;
+            body.innerHTML = `
+                <tr class="table-light text-muted fst-italic">
+                    <td class="ps-3 fw-semibold">Master Admin Utama (Sistem)</td>
+                    <td class="font-monospace small fw-bold">admin</td>
+                    <td class="font-monospace small">admin123</td>
+                    <td><span class="badge bg-danger">Master Admin</span></td>
+                    <td class="text-center text-secondary small pe-3">- Inti -</td>
+                </tr>
+            `;
+            dbUsers.forEach((user) => {
+                body.innerHTML += `
+                    <tr>
+                        <td class="ps-3 fw-semibold text-dark">${user.nama}</td>
+                        <td class="font-monospace small fw-bold text-primary">${user.username}</td>
+                        <td class="font-monospace small text-muted">${user.pass}</td>
+                        <td><span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-warning text-dark'} text-uppercase">${user.role}</span></td>
+                        <td class="text-center pe-3">
+                            <button onclick="hapusUser('${user.id}', '${user.username}')" class="btn btn-link link-danger p-0"><i class="fas fa-user-minus"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAll() {
+            updateDashboardStats();
+            renderTableAnggota();
+            renderTableKas();
+            updateWargaDropdown();
+            initChart();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
+            document.getElementById('tab-' + tabId).classList.remove('d-none');
+            
+            const navButtons = ['dashboard', 'anggota', 'kas', 'pengguna'];
+            navButtons.forEach(btn => {
+                const el = document.getElementById('btn-' + btn);
+                if(!el) return;
+                if(btn === tabId) el.className = "nav-link active d-flex align-items-center gap-3 py-2 px-3 rounded text-white";
+                else el.className = "nav-link d-flex align-items-center gap-3 py-2 px-3 rounded text-secondary";
+            });
+            document.getElementById('page-title').innerText = tabId === 'pengguna' ? "Manajemen Pengguna" : tabId.charAt(0).toUpperCase() + tabId.slice(1);
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('stat-total-anggota').innerText = dbAnggota.length + " Rumah / KK";
+            let totalMasuk = 0, totalKeluar = 0, totalIuran = 0;
+
+            dbKas.forEach(item => {
+                if(item.jenis === 'masuk') {
+                    totalMasuk += Number(item.nominal);
+                    if(item.kategori === 'Iuran') totalIuran += Number(item.nominal);
+                } else {
+                    totalKeluar += Number(item.nominal);
+                }
+            });
+            document.getElementById('stat-saldo').innerText = "Rp " + (totalMasuk - totalKeluar).toLocaleString('id-ID');
+            document.getElementById('stat-santunan').innerText = "Rp " + totalKeluar.toLocaleString('id-ID');
+            document.getElementById('stat-iuran').innerText = "Rp " + totalIuran.toLocaleString('id-ID');
+        }
+
+        function renderTableAnggota() {
+            const body = document.getElementById('table-anggota-body');
+            if(!body) return;
+            body.innerHTML = '';
+            dbAnggota.forEach((item) => {
+                const listTanggungan = item.tanggungan ? item.tanggungan.split(',').map(s => s.trim()).filter(Boolean) : [];
+                const totalJiwa = listTanggungan.length + 1;
+                
+                let htmlTanggungan = '<span class="text-muted fst-italic fs-7">Tidak ada tanggungan (1 Jiwa)</span>';
+                if(listTanggungan.length > 0) {
+                    htmlTanggungan = `
+                        <div class="fw-semibold text-secondary mb-1">${listTanggungan.join(', ')}</div>
+                        <span class="badge bg-light text-primary border border-primary-subtle font-monospace px-2" style="font-size: 11px;">
+                            <i class="fas fa-users me-1"></i> Total: ${totalJiwa} Jiwa Tercover
+                        </span>
+                    `;
+                }
+
+                body.innerHTML += `
+                    <tr>
+                        <td class="ps-4 font-monospace small fw-bold text-primary">${item.noAnggota}</td>
+                        <td>
+                            <div class="fw-bold text-dark">${item.nama}</div>
+                            <small class="text-muted text-uppercase fw-semibold" style="font-size:10px;"><i class="fas fa-user-shield text-success"></i> Kepala Keluarga</small>
+                        </td>
+                        <td>${htmlTanggungan}</td>
+                        <td>RT ${item.rt}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="https://wa.me/${item.hp}" target="_blank" class="text-decoration-none fw-semibold text-success small">
+                                    <i class="fab fa-whatsapp"></i> ${item.hp}
+                                </a>
+                                <button onclick="kirimPengingatWA('${item.id}')" class="btn btn-xs btn-success text-white px-2 py-0 action-column" style="font-size: 10px; border-radius: 4px;" title="Kirim Tagihan Iuran">
+                                    <i class="fas fa-paper-plane me-1"></i> Tagih WA
+                                </button>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">${item.status}</span></td>
+                        <td class="text-center pe-4 action-column">
+                            <button onclick="openAnggotaModal('${item.id}')" class="btn btn-link link-warning p-1 me-1"><i class="fas fa-edit"></i></button>
+                            <button onclick="hapusAnggota('${item.id}')" class="btn btn-link link-danger p-1"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function kirimPengingatWA(id) {
+            const target = dbAnggota.find(a => a.id === id);
+            if(!target) return;
+
+            let hpBersih = target.hp.replace(/\D/g, ''); 
+            if(hpBersih.startsWith('0')) {
+                hpBersih = '62' + hpBersih.slice(1);
+            }
+
+            const teksPesan = `Assalamu'alaikum Wr. Wb.\nSelamat hari ini Bapak/Ibu *${target.nama}* (Keluarga RT ${target.rt}).\n\nKami dari *Pengurus Paguyuban Rukun Kematian (SIRUKEM)*, ingin melakukan konfirmasi berkala mengenai keaktifan partisipasi iuran kas rukun kematian untuk total amanah warga tanggungan Anda.\n\nMohon kesediaannya meluangkan waktu memeriksa atau menyetorkan dana iuran bulanan ke Bendahara RT setempat demi kelancaran kas sosial lingkungan kita bersama.\n\nTerima kasih banyak atas perhatian dan kerja samanya. 🙏✨\n\n_Salam Hangat,_\n*Pengurus Rukun Kematian*`;
+
+            const urlWA = `https://wa.me/${hpBersih}?text=${encodeURIComponent(teksPesan)}`;
+            window.open(urlWA, '_blank');
+        }
+
+        function updateWargaDropdown() {
+            const dropdown = document.getElementById('tx-warga-id');
+            if (!dropdown) return;
+            const currentSelection = dropdown.value;
+            dropdown.innerHTML = `
+                <option value="">-- Pilih Kepala Keluarga --</option>
+                <option value="Umum">Bukan Warga (Pengeluaran Umum)</option>
+            `;
+            const wargaUrut = [...dbAnggota].sort((a, b) => a.nama.localeCompare(b.nama));
+            wargaUrut.forEach(warga => {
+                dropdown.innerHTML += `<option value="${warga.id}">${warga.nama} (RT ${warga.rt})</option>`;
+            });
+            dropdown.value = currentSelection;
+        }
+
+        function openAnggotaModal(id = null) { 
+            editAnggotaId = id;
+            if(id !== null) {
+                const target = dbAnggota.find(a => a.id === id);
+                document.getElementById('modal-anggota-title').innerText = "Form Edit Data Keluarga";
+                document.getElementById('m-nama').value = target.nama;
+                document.getElementById('m-tanggungan').value = target.tanggungan ? target.tanggungan : '';
+                document.getElementById('m-rt').value = target.rt;
+                document.getElementById('m-hp').value = target.hp;
+            } else {
+                document.getElementById('modal-anggota-title').innerText = "Form Registrasi Keluarga Baru";
+                document.getElementById('form-anggota').reset();
+            }
+            bsModalAnggota.show();
+        }
+        
+        function closeAnggotaModal() { 
+            bsModalAnggota.hide();
+            editAnggotaId = null;
+        }
+
+        async function handleSaveAnggota(e) {
+            e.preventDefault();
+            const nama = document.getElementById('m-nama').value;
+            const tanggungan = document.getElementById('m-tanggungan').value;
+            const rt = document.getElementById('m-rt').value;
+            const hp = document.getElementById('m-hp').value;
+
+            try {
+                if(editAnggotaId !== null) {
+                    await updateDoc(doc(db, "anggota", editAnggotaId), { nama, tanggungan, rt, hp });
+                    Swal.fire('Berhasil!', 'Data kartu keluarga diperbarui.', 'success');
+                } else {
+                    const noAnggotaManual = 'KK-' + (dbAnggota.length + 1001);
+                    await addDoc(collection(db, "anggota"), { noAnggota: noAnggotaManual, nama, tanggungan, rt, hp, status: 'Aktif' });
+                    Swal.fire('Berhasil!', 'Keluarga baru didaftarkan online.', 'success');
+                }
+                closeAnggotaModal();
+            } catch (err) { Swal.fire('Gagal!', 'Kesalahan sinkronisasi data.', 'error'); }
+        }
+
+        async function hapusAnggota(id) {
+            Swal.fire({ title: 'Hapus Keluarga?', text: "Seluruh data pengikut di KK ini juga akan terhapus.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Hapus' }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await deleteDoc(doc(db, "anggota", id));
+                        Swal.fire('Dihapus!', 'Data telah dibersihkan.', 'success');
+                    } catch (err) { Swal.fire('Gagal!', 'Gagal menghapus.', 'error'); }
+                }
+            });
+        }
+
+        function renderTableKas() {
+            const body = document.getElementById('table-kas-body');
+            if(!body) return;
+            body.innerHTML = '';
+            dbKas.forEach(item => {
+                const debit = item.jenis === 'masuk' ? 'Rp ' + Number(item.nominal).toLocaleString('id-ID') : '-';
+                const kredit = item.jenis === 'keluar' ? 'Rp ' + Number(item.nominal).toLocaleString('id-ID') : '-';
+                body.innerHTML += `
+                    <tr>
+                        <td class="ps-3 small text-muted">${item.tanggal}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">${item.kategori}</span></td>
+                        <td class="small fw-medium text-dark">${item.keterangan}</td>
+                        <td class="text-end text-success fw-bold">${debit}</td>
+                        <td class="text-end text-danger fw-bold">${kredit}</td>
+                        <td class="text-center font-monospace text-muted small">${item.petugas ? item.petugas : 'Admin'}</td>
+                        <td class="text-center pe-3 action-column">
+                            <button onclick="editKas('${item.id}')" class="btn btn-link link-warning p-1"><i class="fas fa-edit small"></i></button>
+                            <button onclick="hapusKas('${item.id}')" class="btn btn-link link-danger p-1"><i class="fas fa-trash-alt small"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editKas(id) {
+            editKasId = id;
+            const target = dbKas.find(k => k.id === id);
+            document.getElementById('tx-jenis').value = target.jenis;
+            document.getElementById('tx-kategori').value = target.kategori;
+            document.getElementById('tx-nominal').value = target.nominal;
+            document.getElementById('tx-keterangan').value = target.catatanAsli ? target.catatanAsli : target.keterangan;
+            
+            document.getElementById('form-kas-title').innerText = "Ubah Catatan Kas";
+            document.getElementById('btn-submit-kas').innerText = "Perbarui Catatan";
+            document.getElementById('btn-submit-kas').className = "btn btn-warning w-100 fw-bold shadow-sm text-dark";
+            document.getElementById('btn-batal-kas').classList.remove('d-none');
+        }
+
+        function batalEditKas() {
+            editKasId = null;
+            document.getElementById('form-transaksi').reset();
+            document.getElementById('tx-warga-id').value = "";
+            document.getElementById('form-kas-title').innerText = "Input Buku Kas / Iuran";
+            document.getElementById('btn-submit-kas').innerText = "Simpan Transaksi Ke Buku Kas";
+            document.getElementById('btn-submit-kas').className = "btn btn-success w-100 fw-bold shadow-sm";
+            document.getElementById('btn-batal-kas').classList.add('d-none');
+        }
+
+        async function handleSaveTransaksi(e) {
+            e.preventDefault();
+            const jenis = document.getElementById('tx-jenis').value;
+            const kategori = document.getElementById('tx-kategori').value;
+            const nominal = Number(document.getElementById('tx-nominal').value);
+            const wargaSelect = document.getElementById('tx-warga-id');
+            const wargaId = wargaSelect.value;
+            const namaWargaLabel = wargaSelect.options[wargaSelect.selectedIndex].text;
+            const catatanAsli = document.getElementById('tx-keterangan').value;
+
+            const keteranganFinal = (wargaId === 'Umum' || wargaId === '') ? catatanAsli : `${namaWargaLabel} - ${catatanAsli}`;
+            const usernamePetugas = activeUser ? activeUser.username : 'admin';
+
+            try {
+                if(editKasId !== null) {
+                    await updateDoc(doc(db, "kas", editKasId), { jenis, kategori, nominal, keterangan: keteranganFinal, catatanAsli });
+                    Swal.fire('Berhasil!', 'Catatan keuangan diperbarui.', 'success');
+                    batalEditKas();
+                } else {
+                    await addDoc(collection(db, "kas"), {
+                        tanggal: new Date().toISOString().split('T')[0],
+                        jenis, kategori, nominal, keterangan: keteranganFinal, catatanAsli,
+                        petugas: usernamePetugas, createdAt: Date.now()
+                    });
+                    document.getElementById('form-transaksi').reset();
+                    wargaSelect.value = "";
+                    Swal.fire('Berhasil!', 'Catatan kas online berhasil disimpan.', 'success');
+                }
+            } catch (err) { Swal.fire('Gagal!', 'Kesalahan sistem simpan kas.', 'error'); }
+        }
+
+        async function hapusKas(id) {
+            Swal.fire({ title: 'Hapus Jurnal Kas?', text: "Saldo akan otomatis dikalkulasi ulang.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Hapus' }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await deleteDoc(doc(db, "kas", id));
+                        Swal.fire('Dihapus!', 'Catatan dihapus.', 'success');
+                    } catch (err) { Swal.fire('Gagal!', 'Gagal menghapus data.', 'error'); }
+                }
+            });
+        }
+
+        function exportPDF(elementId, fileName) {
+            const targetElement = document.getElementById(elementId);
+            const pdfHeaders = targetElement.querySelectorAll('.pdf-header');
+            pdfHeaders.forEach(header => header.style.display = 'block');
+            const actionColumns = targetElement.querySelectorAll('.action-column');
+            actionColumns.forEach(col => col.style.setProperty('display', 'none', 'important'));
+
+            const options = {
+                margin:       [12, 12, 12, 12],
+                filename:     fileName + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            Swal.fire({ title: 'Menyiapkan PDF...', text: 'Mohon tunggu sebentar.', didOpen: () => { Swal.showLoading(); } });
+            html2pdf().set(options).from(targetElement).save().then(() => {
+                pdfHeaders.forEach(header => header.style.display = 'none');
+                actionColumns.forEach(col => col.style.display = '');
+                Swal.close();
+            }).catch(err => {
+                Swal.close();
+                Swal.fire('Gagal!', 'Kesalahan membuat PDF.', 'error');
+            });
+        }
+
+        function initChart() {
+            const canvasElement = document.getElementById('dashboardChart');
+            if(!canvasElement) return;
+            const ctx = canvasElement.getContext('2d');
+            let masuk = 0, keluar = 0;
+            dbKas.forEach(item => {
+                if(item.jenis === 'masuk') masuk += Number(item.nominal);
+                else keluar += Number(item.nominal);
+            });
+
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Dana Masuk (Debit)', 'Dana Keluar (Kredit)'],
+                    datasets: [{ data: [masuk, keluar], backgroundColor: ['#198754', '#dc3545'], borderRadius: 6, barThickness: 45 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // ==========================================
+        // PROSES INISIALISASI LANGSUNG (ANTI-KEDIP)
+        // ==========================================
+        bsModalAnggota = new bootstrap.Modal(document.getElementById('modal-anggota'));
+        checkSession();
+        initRealtimeSync();
+
+        // Ikat fungsi ke objek global window agar tag HTML onclick berfungsi penuh
+        window.handleLogin = handleLogin;
+        window.handleLogout = handleLogout;
+        window.switchTab = switchTab;
+        window.openAnggotaModal = openAnggotaModal;
+        window.closeAnggotaModal = closeAnggotaModal;
+        window.handleSaveAnggota = handleSaveAnggota;
+        window.hapusAnggota = hapusAnggota;
+        window.editKas = editKas;
+        window.batalEditKas = batalEditKas;
+        window.handleSaveTransaksi = handleSaveTransaksi;
+        window.hapusKas = hapusKas;
+        window.exportPDF = exportPDF;
+        window.handleSaveUser = handleSaveUser;
+        window.hapusUser = hapusUser;
+        window.kirimPengingatWA = kirimPengingatWA;
+    </script>
+</body>
+</html>
