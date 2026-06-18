@@ -7,13 +7,14 @@
     
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/styles/overlayscrollbars.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="action-column" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         #login-screen {
@@ -80,7 +81,6 @@
         }
         .pdf-header { display: none; }
 
-        /* TWEAK KEPADATAN TABEL AGAR TIDAK TERPOTONG KE BAWAH */
         .table th, .table td {
             padding: 8px 12px !important;
             vertical-align: middle !important;
@@ -89,12 +89,10 @@
             overflow-y: visible !important;
         }
 
-        /* CUSTOM BORDER TEGAS UNTUK LAYAR & PDF */
         .table-bordered, .table-bordered th, .table-bordered td {
             border: 1px solid #cbd5e1 !important;
         }
 
-        /* ENGINE KHUSUS ANTI TERPOTONG SAAT CETAK PDF */
         .pdf-mode .table-responsive {
             overflow: visible !important;
             white-space: normal !important;
@@ -126,7 +124,7 @@
                 </div>
                 <h3 class="fw-bold text-white tracking-tight mb-1">SIRUKEM V4.3</h3>
                 <p class="small m-0" style="color: #94a3b8;">Sistem Rukun Kematian</p>
-                <p class="small m-0" style="color: #94a3b8;">RT 13B & 14 DESA PANGGUNG</p>
+                <p class="small m-0" style="color: #94a3b8;">RT 13B & RT 14 Desa Panggung</p>
             </div>
             <form id="form-login" onsubmit="handleLogin(event)">
                 <div class="mb-3">
@@ -146,7 +144,6 @@
                 <button type="submit" class="btn btn-gradient w-100 shadow-sm mb-3 d-flex align-items-center justify-content-center gap-2">
                     <span>Masuk Ke Sistem</span> <i class="fas fa-arrow-right small"></i>
                 </button>
-                
             </form>
         </div>
     </div>
@@ -233,7 +230,7 @@
                                         <span class="info-box-text text-muted small text-uppercase fw-bold">Total KK Terdaftar</span>
                                         <span class="info-box-number text-dark fs-4 fw-bold" id="stat-total-anggota">0 KK</span>
                                     </div>
-                                end    </div>
+                                </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-3">
                                 <div class="info-box bg-white border rounded shadow-sm">
@@ -294,6 +291,9 @@
                             <div class="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 border-bottom py-2">
                                 <h5 class="card-title fw-bold mb-0 text-dark fs-6">Data Anggota Keluarga Pembayar Iuran</h5>
                                 <div class="d-flex gap-2">
+                                    <button onclick="exportExcelAnggota()" class="btn btn-success btn-sm fw-bold px-2 py-1 fs-7">
+                                        <i class="fas fa-file-excel"></i> Unduh Excel
+                                    </button>
                                     <button onclick="exportPDF('print-area-anggota', 'Laporan_Data_Anggota_SIRUKEM')" class="btn btn-danger btn-sm fw-bold px-2 py-1 fs-7">
                                         <i class="fas fa-file-pdf"></i> Unduh PDF
                                     </button>
@@ -362,7 +362,7 @@
                                             </div>
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold text-secondary mb-1">Nominal (Rupiah)</label>
-                                                <input type="number" id="tx-nominal" class="form-control text-xs" placeholder="Contoh: 20000" required>
+                                                <input type="number" id="tx-nominal" class="form-control text-xs" placeholder="Contoh: 5000" required>
                                             </div>
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold text-secondary mb-1">Keterangan Tambahan</label>
@@ -384,9 +384,14 @@
                                 <div class="card shadow-sm border">
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between border-bottom py-2">
                                         <h5 class="card-title fw-bold mb-0 text-dark fs-6">Jurnal Buku Kas Digital</h5>
-                                        <button onclick="exportPDF('print-area-kas', 'Jurnal_Buku_Kas_SIRUKEM')" class="btn btn-danger btn-sm fw-bold px-2 py-1 fs-7">
-                                            <i class="fas fa-file-pdf"></i> Jurnal PDF
-                                        </button>
+                                        <div class="d-flex gap-2">
+                                            <button onclick="exportExcelKas()" class="btn btn-success btn-sm fw-bold px-2 py-1 fs-7">
+                                                <i class="fas fa-file-excel"></i> Jurnal Excel
+                                            </button>
+                                            <button onclick="exportPDF('print-area-kas', 'Jurnal_Buku_Kas_SIRUKEM')" class="btn btn-danger btn-sm fw-bold px-2 py-1 fs-7">
+                                                <i class="fas fa-file-pdf"></i> Jurnal PDF
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="card-body p-0" id="print-area-kas">
                                         <div class="pdf-header p-3 border-bottom text-center">
@@ -551,7 +556,9 @@
         let editKasId = null;
         let bsModalAnggota = null;
 
-        // PAGINATION STATES GLOBALS
+        let inactivityTimer = null;
+        const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 Menit
+
         let currentPageAnggota = 1;
         let currentPageKas = 1;
         const rowsPerPage = 5; 
@@ -563,7 +570,7 @@
                 renderAll();
             }, (error) => {
                 console.error(error);
-                Swal.fire('Gagal Sinkronisasi!', 'Aturan Firebase memblokir sistem Anda. Silakan ikuti instruksi perbaikan Rules Firebase.', 'error');
+                Swal.fire('Gagal Sinkronisasi!', 'Aturan Firebase memblokir sistem Anda.', 'error');
             });
 
             const kasQuery = query(collection(db, "kas"), orderBy("createdAt", "desc"));
@@ -578,6 +585,26 @@
                 snapshot.forEach((doc) => { dbUsers.push({ id: doc.id, ...doc.data() }); });
                 renderTableUsers();
             });
+        }
+
+        function resetInactivityTimer() {
+            if (!activeUser) return;
+            
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                localStorage.removeItem('sirukem_user_profile');
+                activeUser = null;
+                switchTab('dashboard');
+                checkSession();
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Anda Berakhir!',
+                    text: 'Aplikasi otomatis keluar untuk keamanan karena tidak ada aktivitas selama 10 menit.',
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Log In Kembali'
+                });
+            }, INACTIVITY_LIMIT);
         }
 
         function checkSession() {
@@ -599,9 +626,12 @@
                 } else {
                     btnPenggunaWrapper.classList.add('d-none');
                 }
+                
+                resetInactivityTimer();
             } else {
                 loginScreen.classList.remove('d-none');
                 mainApp.className = "app-wrapper d-none";
+                clearTimeout(inactivityTimer);
             }
         }
 
@@ -626,6 +656,7 @@
         }
 
         function handleLogout() {
+            clearTimeout(inactivityTimer);
             localStorage.removeItem('sirukem_user_profile');
             activeUser = null;
             switchTab('dashboard');
@@ -850,6 +881,78 @@
 
             const teksPesan = `Assalamu'alaikum Wr. Wb.\nSelamat hari ini Bapak/Ibu *${target.nama}* (Keluarga RT ${target.rt}).\n\nKami dari *Pengurus Paguyuban Rukun Kematian (SIRUKEM)*, ingin melakukan konfirmasi berkala mengenai keaktifan partisipasi iuran kas rukun kematian untuk total amanah warga tanggungan Anda.\n\nMohon kesediaannya meluangkan waktu memeriksa atau menyetorkan dana iuran bulanan ke Bendahara RT setempat demi kelancaran kas sosial lingkungan kita bersama.\n\nTerima kasih banyak atas perhatian dan kerja samanya. 🙏✨\n\n_Salam Hangat,_\n*Pengurus Rukun Kematian*`;
             window.open(`https://wa.me/${hpBersih}?text=${encodeURIComponent(teksPesan)}`, '_blank');
+        }
+
+        // ==========================================
+        // ENGINE HELPER: AUTO WIDTH EXCEL ENGINE
+        // ==========================================
+        function aturLebarKolom(dataMapped) {
+            const kunciKolom = Object.keys(dataMapped[0] || {});
+            return kunciKolom.map(kunci => {
+                const panjangMaksimal = Math.max(
+                    kunci.length,
+                    ...dataMapped.map(baris => (baris[kunci] ? baris[kunci].toString().length : 0))
+                );
+                return { wch: panjangMaksimal + 5 }; 
+            });
+        }
+
+        // ==========================================
+        // EXPORT EXCEL DATA ANGGOTA (POLA RAPI)
+        // ==========================================
+        function exportExcelAnggota() {
+            if(dbAnggota.length === 0) {
+                Swal.fire('Data Kosong!', 'Tidak ada data keluarga untuk di-export.', 'warning');
+                return;
+            }
+
+            const dataMapped = dbAnggota.map((item, index) => ({
+                'No.': index + 1,
+                'ID Anggota / No. KK': item.noAnggota,
+                'Nama Kepala Keluarga': item.nama,
+                'Anggota Keluarga (Tanggungan)': item.tanggungan || '-',
+                'Wilayah': 'RT ' + item.rt,
+                'Nomor HP / WhatsApp': item.hp,
+                'Status Keanggotaan': item.status
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataMapped);
+            worksheet['!cols'] = aturLebarKolom(dataMapped);
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Master Warga");
+            
+            XLSX.writeFile(workbook, "Laporan_Master_Data_Anggota_SIRUKEM.xlsx");
+            Swal.fire('Sukses!', 'Data keluarga berhasil di-unduh dengan susunan rapi.', 'success');
+        }
+
+        // ==========================================
+        // EXPORT EXCEL JURNAL KAS (POLA AKUNTANSI)
+        // ==========================================
+        function exportExcelKas() {
+            if(dbKas.length === 0) {
+                Swal.fire('Data Kosong!', 'Tidak ada catatan transaksi kas untuk di-export.', 'warning');
+                return;
+            }
+
+            const dataMapped = dbKas.map((item, index) => ({
+                'No.': index + 1,
+                'Tanggal Transaksi': item.tanggal,
+                'Kategori Pos Dana': item.kategori,
+                'Keterangan / Deskripsi': item.keterangan,
+                'Masuk / Debit (Rp)': item.jenis === 'masuk' ? Number(item.nominal) : 0,
+                'Keluar / Kredit (Rp)': item.jenis === 'keluar' ? Number(item.nominal) : 0,
+                'Petugas Pencatat': item.petugas || 'Admin'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataMapped);
+            worksheet['!cols'] = aturLebarKolom(dataMapped);
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Jurnal Buku Kas");
+            
+            XLSX.writeFile(workbook, "Jurnal_Buku_Kas_Keuangan_SIRUKEM.xlsx");
+            Swal.fire('Sukses!', 'Jurnal Keuangan berhasil di-unduh dengan susunan rapi.', 'success');
         }
 
         function updateWargaDropdown() {
@@ -1092,6 +1195,10 @@
         checkSession();
         initRealtimeSync();
 
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer);
+        });
+
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
         window.switchTab = switchTab;
@@ -1104,6 +1211,8 @@
         window.handleSaveTransaksi = handleSaveTransaksi;
         window.hapusKas = hapusKas;
         window.exportPDF = exportPDF;
+        window.exportExcelAnggota = exportExcelAnggota;
+        window.exportExcelKas = exportExcelKas;
         window.handleSaveUser = handleSaveUser;
         window.hapusUser = hapusUser;
         window.kirimPengingatWA = kirimPengingatWA;
